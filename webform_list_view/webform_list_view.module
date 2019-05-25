@@ -1,0 +1,65 @@
+<?php
+
+/**
+ * Implementation of hook_menu().
+ */
+function webform_list_view_menu() {
+  $items = array();
+ 
+  $items['admin/content/webform/list'] = array(
+    'title' => 'Webforms List',
+    'page callback' => 'webform_list_content',   
+    'access callback' => 'user_access',
+    'access arguments' => array('access all webform results'),
+    'description' => 'Webform List View Page.',
+    'type' => MENU_LOCAL_TASK
+  );
+
+  return $items;
+}
+/**
+ * Get webform list content
+ * 
+ */
+function webform_list_content(){
+    $nodes = node_load_multiple(array(), array(
+        'type' => 'webform'
+    ));
+
+    $header = array(
+        t('Webform Title'),
+	t('To Email'),
+        t('Created'),
+        t('Status')
+    );
+
+  $rows = array();
+  foreach ($nodes as $node) {
+	  $emails = $node->webform['emails'];
+	  if(empty($emails)){
+                $email_address_str = '';
+	  } else {
+                $email_address_arr = array();
+                foreach($emails as $email){
+		  $email_address_arr[] = $email['email'];		  
+                }
+            $email_address_str = implode(', ', $email_address_arr);
+	  }
+        $status = ($node->status === '1')?'Published':'Not Published';
+        $rows[] = array(
+            l($node->title, 'node/' . $node->nid.'/webform/'),
+            $email_address_str,
+            format_date($node->created, 'article'),
+            $status    
+        );
+  }
+
+  if (empty($rows)) {
+    $message = t('There are currently no webforms on your site. Create a !types piece of content.', array('!types' => $webform_type_list));
+    $rows[] = array(
+      array('data' => $message, 'colspan' => 3),
+    );
+  }
+
+  return theme('table', array('header' => $header, 'rows' => $rows));
+}
