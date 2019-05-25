@@ -1,2 +1,0 @@
-Webform List View 7.x-1.0, 2019-05-25
-* Initial Release
